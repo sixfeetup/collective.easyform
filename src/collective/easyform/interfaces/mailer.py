@@ -16,9 +16,15 @@ import zope.i18nmessageid
 import zope.interface
 import zope.schema.interfaces
 
+from collective.easyform.ya_gpg import gpg
+
 
 PMF = zope.i18nmessageid.MessageFactory('plone')
 MODIFY_PORTAL_CONTENT = 'cmf.ModifyPortalContent'
+
+gpg_warn = ""
+if gpg is not None:
+    gpg_warn = " CAUTION: Attachments are NOT ENCRYPTED."
 
 
 def default_mail_body():
@@ -130,7 +136,7 @@ class IMailer(IAction):
     fieldset(u'message', label=PMF('Message'), fields=[
              'msg_subject', 'subject_field', 'body_pre', 'body_post',
              'body_footer', 'showAll', 'showFields', 'includeEmpties',
-             'sendCSV', ])
+             'gpg_keyid', 'sendCSV', ])
     directives.read_permission(msg_subject=MODIFY_PORTAL_CONTENT)
     msg_subject = zope.schema.TextLine(
         title=_(u'label_formmailer_subject', default=u'Subject'),
@@ -233,13 +239,31 @@ class IMailer(IAction):
         required=False,
     )
 
+
+    if gpg is not None:
+        directives.read_permission(gpg_keyid=MODIFY_PORTAL_CONTENT)
+        gpg_keyid = zope.schema.TextLine(
+            title=_(u'label_formmailer_gpg_keyid', default=u'GPG Key-Id'),
+            description=_(u'help_formailer_gpg_key_id', default=u''
+                          u'Give your key-id, e-mail address or whatever works '
+                          u'to match a public key from current keyring. It '
+                          u'will be used to encrypt the message body (not '
+                          u'attachments). Contact the site administrator if '
+                          u'you need to install a new public key. '
+                          u'Note that you will probably wish to change your '
+                          u'message template to plain text if you\'re using '
+                          u'encryption. TEST THIS FEATURE BEFORE GOING '
+                          u'PUBLIC!'),
+            required=False,
+        )
+
     directives.read_permission(sendCSV=MODIFY_PORTAL_CONTENT)
     sendCSV = zope.schema.Bool(
         title=_(u'label_sendCSV_text', default=u'Send CSV data attachment'),
         description=_(u'help_sendCSV_text', default=u''
                       u'Check this to send a CSV file '
                       u'attachment containing the values '
-                      u'filled out in the form.'),
+                      u'filled out in the form.' + gpg_warn),
         default=False,
         required=False,
     )

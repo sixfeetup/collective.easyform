@@ -18,6 +18,7 @@ from collective.easyform.interfaces import ICustomScript
 from collective.easyform.interfaces import IExtraData
 from collective.easyform.interfaces import IMailer
 from collective.easyform.interfaces import ISaveData
+from collective.easyform.ya_gpg import gpg
 from copy import deepcopy
 from csv import writer as csvwriter
 from DateTime import DateTime
@@ -173,6 +174,18 @@ class Mailer(Action):
         template = ZopePageTemplate(self.__name__)
         template.write(bodyfield)
         template = template.__of__(context)
+
+        try:
+            keyid = self.gpg_keyid
+        except AttributeError:
+            keyid = None
+        encryption = gpg and keyid
+
+        if encryption:
+            bodygpg = gpg.encrypt(template.pt_render(extra_context=extra), keyid)
+            if bodygpg.strip():
+                body = bodygpg
+                return body
         return template.pt_render(extra_context=extra)
 
     def get_owner_info(self, context):
