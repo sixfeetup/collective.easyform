@@ -133,10 +133,16 @@ class IMailer(IAction):
         required=False,
         vocabulary='easyform.Fields',
     )
-    fieldset(u'message', label=PMF('Message'), fields=[
-             'msg_subject', 'subject_field', 'body_pre', 'body_post',
-             'body_footer', 'showAll', 'showFields', 'includeEmpties',
-             'gpg_keyid', 'sendCSV', ])
+    if gpg is not None:
+        fieldset(u'message', label=PMF('Message'), fields=[
+                 'msg_subject', 'subject_field', 'body_pre', 'body_post',
+                 'body_footer', 'showAll', 'showFields', 'includeEmpties',
+                 'gpg_keyid', 'sendCSV', ])
+    else:
+        fieldset(u'message', label=PMF('Message'), fields=[
+                 'msg_subject', 'subject_field', 'body_pre', 'body_post',
+                 'body_footer', 'showAll', 'showFields', 'includeEmpties',
+                 'sendCSV', ])
     directives.read_permission(msg_subject=MODIFY_PORTAL_CONTENT)
     msg_subject = zope.schema.TextLine(
         title=_(u'label_formmailer_subject', default=u'Subject'),
